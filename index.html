@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Vesak Card System | වෙසක් කාඩ් පද්ධතිය</title>
+  <meta name="description" content="Create beautiful digital Vesak greeting cards in Sinhala and English. Choose from 10 stunning templates, select a poem, and personalize your card." />
+  <meta name="keywords" content="Vesak card, Buddhist greeting card, Sinhala card, Happy Vesak, වෙසක් කාඩ්" />
+  <meta name="author" content="Dinithi Sewmini Perera" />
+  <meta property="og:title" content="Digital Vesak Card System" />
+  <meta property="og:description" content="Create beautiful Vesak greeting cards in Sinhala and English" />
+  <meta property="og:type" content="website" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- html2canvas for card download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Floating Particles Background -->
+  <div class="particles" id="particles"></div>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-logo">
+        <span class="lotus-icon">☸</span>
+        <div class="header-titles">
+          <h1 class="site-title-en">Digital Vesak Card System</h1>
+          <p class="site-title-si">ඩිජිටල් වෙසක් කාඩ් පද්ධතිය</p>
+        </div>
+      </div>
+      <div class="header-lang-toggle">
+        <button id="btn-lang-en" class="lang-btn active" onclick="setLanguage('en')">English</button>
+        <button id="btn-lang-si" class="lang-btn" onclick="setLanguage('si')">සිංහල</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- ===== LEFT PANEL: BUILDER ===== -->
+    <aside class="builder-panel" id="builderPanel">
+
+      <!-- Progress Steps -->
+      <div class="steps-indicator">
+        <div class="step active" id="step-dot-1"><span>1</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="step-dot-2"><span>2</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="step-dot-3"><span>3</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="step-dot-4"><span>4</span></div>
+      </div>
+
+      <!-- STEP 1: Language -->
+      <section class="builder-section active" id="section-1">
+        <div class="section-header">
+          <span class="step-num">01</span>
+          <div>
+            <h2 class="section-title" data-en="Select Language" data-si="භාෂාව තෝරන්න">Select Language</h2>
+            <p class="section-sub" data-en="Choose your card language" data-si="ඔබේ කාඩ් භාෂාව තෝරන්න">Choose your card language</p>
+          </div>
+        </div>
+        <div class="lang-options">
+          <button class="lang-option-btn active" id="card-lang-en" onclick="selectCardLanguage('en')">
+            <span class="lang-flag">🇬🇧</span>
+            <span class="lang-label">English</span>
+            <span class="lang-check">✓</span>
+          </button>
+          <button class="lang-option-btn" id="card-lang-si" onclick="selectCardLanguage('si')">
+            <span class="lang-flag">🇱🇰</span>
+            <span class="lang-label">සිංහල</span>
+            <span class="lang-check">✓</span>
+          </button>
+        </div>
+        <button class="next-btn" onclick="goToStep(2)" data-en="Next: Choose Template →" data-si="ඊළඟ: අච්චුව →">Next: Choose Template →</button>
+      </section>
+
+      <!-- STEP 2: Template -->
+      <section class="builder-section" id="section-2">
+        <div class="section-header">
+          <span class="step-num">02</span>
+          <div>
+            <h2 class="section-title" data-en="Choose Template" data-si="අච්චුව තෝරන්න">Choose Template</h2>
+            <p class="section-sub" data-en="Select a beautiful Vesak background" data-si="සුන්දර වෙසක් පසුබිමක් තෝරන්න">Select a beautiful Vesak background</p>
+          </div>
+        </div>
+        <div class="template-grid" id="templateGrid">
+          <!-- Injected by JS -->
+        </div>
+        <div class="nav-btns">
+          <button class="back-btn" onclick="goToStep(1)" data-en="← Back" data-si="← ආපසු">← Back</button>
+          <button class="next-btn" onclick="goToStep(3)" data-en="Next: Choose Poem →" data-si="ඊළඟ: පද්යය →">Next: Choose Poem →</button>
+        </div>
+      </section>
+
+      <!-- STEP 3: Poem -->
+      <section class="builder-section" id="section-3">
+        <div class="section-header">
+          <span class="step-num">03</span>
+          <div>
+            <h2 class="section-title" data-en="Choose Poem" data-si="පද්යය තෝරන්න">Choose Poem</h2>
+            <p class="section-sub" data-en="Select a poem for your Vesak card" data-si="ඔබේ කාඩ් සඳහා පද්යයක් තෝරන්න">Select a poem for your Vesak card</p>
+          </div>
+        </div>
+        <div class="poem-list" id="poemList">
+          <!-- Injected by JS -->
+        </div>
+        <div class="nav-btns">
+          <button class="back-btn" onclick="goToStep(2)" data-en="← Back" data-si="← ආපසු">← Back</button>
+          <button class="next-btn" onclick="goToStep(4)" data-en="Next: Add Names →" data-si="ඊළඟ: නම් →">Next: Add Names →</button>
+        </div>
+      </section>
+
+      <!-- STEP 4: From / To -->
+      <section class="builder-section" id="section-4">
+        <div class="section-header">
+          <span class="step-num">04</span>
+          <div>
+            <h2 class="section-title" data-en="From & To" data-si="යවන්නා සහ ලබන්නා">From &amp; To</h2>
+            <p class="section-sub" data-en="Personalize your Vesak card" data-si="ඔබේ කාඩ් පෞද්ගලික කරන්න">Personalize your Vesak card</p>
+          </div>
+        </div>
+        <div class="name-inputs">
+          <div class="input-group">
+            <label for="fromName" data-en="From (Sender's Name)" data-si="යවන්නාගේ නම">From (Sender's Name)</label>
+            <input type="text" id="fromName" placeholder="Enter your name..." oninput="updatePreview()" />
+          </div>
+          <div class="input-group">
+            <label for="toName" data-en="To (Receiver's Name)" data-si="ලබන්නාගේ නම">To (Receiver's Name)</label>
+            <input type="text" id="toName" placeholder="Enter recipient's name..." oninput="updatePreview()" />
+          </div>
+        </div>
+        <div class="nav-btns">
+          <button class="back-btn" onclick="goToStep(3)" data-en="← Back" data-si="← ආපසු">← Back</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn-download" id="btnDownload" onclick="downloadCard()">
+            <span class="btn-icon">⬇</span>
+            <span data-en="Download Card" data-si="කාඩ් බාගන්න">Download Card</span>
+          </button>
+          <button class="btn-new" onclick="createNew()">
+            <span class="btn-icon">✦</span>
+            <span data-en="Create New" data-si="නව කාඩ්">Create New</span>
+          </button>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- ===== RIGHT PANEL: CARD PREVIEW ===== -->
+    <div class="preview-panel">
+      <div class="preview-label" data-en="Card Preview" data-si="කාඩ් පෙරදසුන">Card Preview</div>
+
+      <!-- The actual card (9:6 ratio) -->
+      <div class="card-wrapper">
+        <div class="vesak-card" id="vesakCard">
+
+          <!-- LEFT: Photo Side -->
+          <div class="card-photo-side" id="cardPhotoSide">
+            <div class="card-photo-overlay"></div>
+            <div class="photo-label" id="photoLabel">
+              <span data-en="Vesak Greetings" data-si="වෙසක් සුභ පැතුම්">Vesak Greetings</span>
+            </div>
+          </div>
+
+          <!-- RIGHT: Content Side -->
+          <div class="card-content-side" id="cardContentSide">
+            <!-- Decorative top border -->
+            <div class="card-deco-top">
+              <span class="deco-flower">❀</span>
+              <div class="deco-line"></div>
+              <span class="deco-lotus">☸</span>
+              <div class="deco-line"></div>
+              <span class="deco-flower">❀</span>
+            </div>
+
+            <!-- Vesak Wish Title -->
+            <div class="card-wish-title" id="cardWishTitle">Happy Vesak!</div>
+            <div class="card-wish-si" id="cardWishSi">සුභ වෙසක්!</div>
+
+            <!-- Poem Area -->
+            <div class="card-poem-title" id="cardPoemTitle">Light of Buddha</div>
+            <div class="card-poem-text" id="cardPoemText">
+              Please select a poem from the left panel...
+            </div>
+
+            <!-- From / To -->
+            <div class="card-names" id="cardNames">
+              <div class="card-from" id="cardFrom">From: —</div>
+              <div class="card-to" id="cardTo">To: —</div>
+            </div>
+
+            <!-- Decorative bottom -->
+            <div class="card-deco-bottom">
+              <span class="deco-flower">❀</span>
+              <div class="deco-line"></div>
+              <span class="deco-lotus">☸</span>
+              <div class="deco-line"></div>
+              <span class="deco-flower">❀</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Download hint -->
+      <p class="preview-hint" id="previewHint" data-en="Fill all steps then download your card as PNG" data-si="සියලු පියවර සම්පූර්ණ කර PNG ලෙස බාගන්න">Fill all steps then download your card as PNG</p>
+    </div>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <p>
+      <span data-en="Crafted with" data-si="ආදරයෙන් නිර්මාණය කළේ">Crafted with</span>
+      <span class="heart">❤</span>
+      <span data-en="for Vesak 2026 — May all beings be happy" data-si="වෙසක් 2026 සඳහා — සියලු සත්ත්වයෝ සතුටු වෙත්වා">for Vesak 2026 — May all beings be happy</span>
+    </p>
+    <p class="footer-pali">සබ්බේ සත්තා සුඛිතා හොන්තු</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
