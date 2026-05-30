@@ -652,78 +652,114 @@ async function downloadCard() {
   showLoading(t.creating);
 
   try {
-    // Check if html2canvas is available
-    if (typeof html2canvas === 'undefined') {
-      hideLoading();
-      showToast('⚠️ Download library loading. Try again in a moment.');
-      console.error('html2canvas not available');
-      return;
-    }
-
     const card = document.getElementById('vesakCard');
     if (!card) {
-      hideLoading();
-      showToast('⚠️ Card not found. Complete all steps first.');
-      console.error('Card element not found');
-      return;
+      throw new Error('Card element not found');
     }
 
-    // Force visible state
-    const originalDisplay = card.style.display;
-    card.style.display = 'block';
-
-    // Render with html2canvas - simpler config
-    const canvas = await html2canvas(card, {
-      allowTaint: true,
-      useCORS: true,
-      scale: 2,
-      logging: false,
-      backgroundColor: '#1a0a2e',
-      proxy: null,
-      foreignObjectRendering: false
-    });
-
-    card.style.display = originalDisplay;
-
-    if (!canvas) {
-      hideLoading();
-      showToast('⚠️ Canvas generation failed. Try refreshing.');
-      console.error('Canvas is null');
-      return;
+    // Check if html2canvas is available
+    if (typeof html2canvas === 'undefined') {
+      throw new Error('html2canvas library not loaded');
     }
 
-    // Try blob method first (more reliable)
+    // Temporarily adjust styles for rendering
+    const originalStyles = {
+      overflow: card.style.overflow,
+      position: card.style.position,
+      visibility: card.style.visibility
+    };
+    card.style.overflow = 'visible';
+    card.style.position = 'relative';
+    card.style.visibility = 'visible';
+
+    // Try rendering the card
+    let canvas;
     try {
-      canvas.toBlob(
-        (blob) => {
-          if (blob && blob.size > 0) {
-            downloadBlob(blob, `Vesak-Card-${Date.now()}.png`);
-            hideLoading();
-            showToast(t.downloadSuccess);
-          } else {
-            throw new Error('Blob is empty or null');
-          }
-        },
-        'image/png',
-        0.95
-      );
+      canvas = await html2canvas(card, {
+        allowTaint: true,
+        useCORS: true,
+        scale: 2,
+        logging: false,
+        backgroundColor: '#1a0a2e',
+        proxy: null,
+        foreignObjectRendering: false,
+        timeout: 20000
+      });
+    } catch (renderErr) {
+      console.error('html2canvas render error:', renderErr);
+      throw new Error(`Rendering failed: ${renderErr.message}`);
+    } finally {
+      // Restore original styles
+      card.style.overflow = originalStyles.overflow;
+      card.style.position = originalStyles.position;
+      card.style.visibility = originalStyles.visibility;
+    }
+
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      throw new Error('Canvas generation produced empty result');
+    }
+
+    // Try to download the canvas
+    let downloaded = false;
+
+    // Method 1: Try Blob (preferred)
+    try {
+      canvas.toBlob((blob) => {
+        if (blob && blob.size > 0) {
+          downloadBlob(blob, `Vesak-Card-${Date.now()}.png`);
+          downloaded = true;
+          hideLoading();
+          showToast(t.downloadSuccess);
+        }
+      }, 'image/png', 0.95);
+
+      // Set timeout - if blob takes too long, try dataURL
+      setTimeout(() => {
+        if (!downloaded) {
+          console.warn('Blob timeout, trying dataURL...');
+          const dataUrl = canvas.toDataURL('image/png');
+          downloadDataUrl(dataUrl, `Vesak-Card-${Date.now()}.png`);
+          downloaded = true;
+          hideLoading();
+          showToast(t.downloadSuccess);
+        }
+      }, 3000);
+
     } catch (blobErr) {
-      // Fallback to dataURL method
-      console.warn('Blob method failed, trying dataURL:', blobErr);
-      const dataUrl = canvas.toDataURL('image/png');
-      if (dataUrl && dataUrl.startsWith('data:')) {
+      console.warn('Blob method failed:', blobErr);
+      // Method 2: Fallback to dataURL
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        if (!dataUrl.startsWith('data:')) {
+          throw new Error('Invalid dataURL');
+        }
         downloadDataUrl(dataUrl, `Vesak-Card-${Date.now()}.png`);
+        downloaded = true;
         hideLoading();
         showToast(t.downloadSuccess);
-      } else {
-        throw new Error('DataURL generation failed');
+      } catch (dataUrlErr) {
+        console.error('DataURL method failed:', dataUrlErr);
+        throw new Error('Both blob and dataURL methods failed');
       }
     }
 
   } catch (err) {
     console.error('Download error:', err);
     hideLoading();
-    showToast('⚠️ Download failed. Check browser console.');
+    
+    // Show specific error based on type
+    let errorMsg = '⚠️ Download failed.';
+    if (err.message.includes('html2canvas')) {
+      errorMsg = '⚠️ Download library not loaded. Refresh page and try again.';
+    } else if (err.message.includes('Canvas') || err.message.includes('Rendering')) {
+      errorMsg = '⚠️ Image rendering failed. Try a different browser or refresh page.';
+    } else if (err.message.includes('Blob') || err.message.includes('DataURL')) {
+      errorMsg = '⚠️ Image save failed. Your browser may not support downloads.';
+    } else if (err.message) {
+      errorMsg = `⚠️ ${err.message}`;
+    }
+    
+    showToast(errorMsg);
   }
 }
 
