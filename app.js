@@ -650,17 +650,25 @@ async function downloadCard() {
   }
 
   showLoading(t.creating);
+  console.log('🔄 Starting download process...');
 
   try {
     const card = document.getElementById('vesakCard');
     if (!card) {
       throw new Error('Card element not found');
     }
+    console.log('✓ Card element found');
 
     // Check if html2canvas is available
     if (typeof html2canvas === 'undefined') {
       throw new Error('html2canvas library not loaded');
     }
+    console.log('✓ html2canvas library loaded');
+
+    // Hide loading overlay temporarily to avoid rendering issues
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const originalLoadingDisplay = loadingOverlay?.style.display;
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
 
     // Temporarily adjust styles for rendering
     const originalStyles = {
@@ -675,6 +683,7 @@ async function downloadCard() {
     // Try rendering the card
     let canvas;
     try {
+      console.log('🎨 Rendering card to canvas...');
       canvas = await html2canvas(card, {
         allowTaint: true,
         useCORS: true,
@@ -683,68 +692,108 @@ async function downloadCard() {
         backgroundColor: '#1a0a2e',
         proxy: null,
         foreignObjectRendering: false,
-        timeout: 20000
+        timeout: 20000,
+        windowHeight: 600,
+        windowWidth: 900
       });
+      console.log('✓ Canvas rendered. Dimensions:', canvas.width, 'x', canvas.height);
     } catch (renderErr) {
-      console.error('html2canvas render error:', renderErr);
+      console.error('❌ html2canvas render error:', renderErr);
       throw new Error(`Rendering failed: ${renderErr.message}`);
     } finally {
       // Restore original styles
       card.style.overflow = originalStyles.overflow;
       card.style.position = originalStyles.position;
       card.style.visibility = originalStyles.visibility;
+      if (loadingOverlay) loadingOverlay.style.display = originalLoadingDisplay || 'flex';
     }
 
     if (!canvas || canvas.width === 0 || canvas.height === 0) {
       throw new Error('Canvas generation produced empty result');
     }
 
-    // Try to download the canvas
+    const filename = `Vesak-Card-${Date.now()}.png`;
     let downloaded = false;
 
     // Method 1: Try Blob (preferred)
+    console.log('📦 Method 1: Trying Blob conversion...');
     try {
       canvas.toBlob((blob) => {
         if (blob && blob.size > 0) {
-          downloadBlob(blob, `Vesak-Card-${Date.now()}.png`);
+          console.log('✓ Blob created, size:', blob.size, 'bytes');
+          downloadBlob(blob, filename);
           downloaded = true;
           hideLoading();
           showToast(t.downloadSuccess);
+        } else {
+          console.warn('⚠️ Blob is empty or null');
         }
       }, 'image/png', 0.95);
 
-      // Set timeout - if blob takes too long, try dataURL
+      // Timeout: if Blob takes too long, try next method
       setTimeout(() => {
         if (!downloaded) {
-          console.warn('Blob timeout, trying dataURL...');
-          const dataUrl = canvas.toDataURL('image/png');
-          downloadDataUrl(dataUrl, `Vesak-Card-${Date.now()}.png`);
-          downloaded = true;
-          hideLoading();
-          showToast(t.downloadSuccess);
+          console.warn('⏱️ Blob timeout, trying DataURL...');
+          tryDataUrlMethod();
         }
       }, 3000);
 
     } catch (blobErr) {
-      console.warn('Blob method failed:', blobErr);
-      // Method 2: Fallback to dataURL
+      console.error('❌ Blob method error:', blobErr);
+      tryDataUrlMethod();
+    }
+
+    async function tryDataUrlMethod() {
+      if (downloaded) return;
+      console.log('🔗 Method 2: Trying DataURL conversion...');
       try {
         const dataUrl = canvas.toDataURL('image/png');
-        if (!dataUrl.startsWith('data:')) {
-          throw new Error('Invalid dataURL');
+        if (!dataUrl || !dataUrl.startsWith('data:')) {
+          throw new Error('Invalid dataURL format');
         }
-        downloadDataUrl(dataUrl, `Vesak-Card-${Date.now()}.png`);
+        console.log('✓ DataURL created, length:', dataUrl.length);
+        downloadDataUrl(dataUrl, filename);
         downloaded = true;
         hideLoading();
         showToast(t.downloadSuccess);
       } catch (dataUrlErr) {
-        console.error('DataURL method failed:', dataUrlErr);
-        throw new Error('Both blob and dataURL methods failed');
+        console.error('❌ DataURL method error:', dataUrlErr);
+        tryCanvasDownloadMethod();
+      }
+    }
+
+    function tryCanvasDownloadMethod() {
+      if (downloaded) return;
+      console.log('💾 Method 3: Trying direct canvas download...');
+      try {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = window.URL.createObjectURL(blob);
+            const xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob';
+            xhr.onload = () => {
+              downloadBlob(xhr.response, filename);
+              window.URL.revokeObjectURL(url);
+              downloaded = true;
+              hideLoading();
+              showToast(t.downloadSuccess);
+            };
+            xhr.onerror = () => {
+              throw new Error('XMLHttpRequest failed');
+            };
+            xhr.open('GET', url);
+            xhr.send();
+          }
+        }, 'image/png', 0.95);
+      } catch (err) {
+        console.error('❌ All download methods failed:', err);
+        hideLoading();
+        showToast('⚠️ Your browser may not support image downloads. Try a different browser.');
       }
     }
 
   } catch (err) {
-    console.error('Download error:', err);
+    console.error('❌ Download error:', err);
     hideLoading();
     
     // Show specific error based on type
@@ -753,8 +802,8 @@ async function downloadCard() {
       errorMsg = '⚠️ Download library not loaded. Refresh page and try again.';
     } else if (err.message.includes('Canvas') || err.message.includes('Rendering')) {
       errorMsg = '⚠️ Image rendering failed. Try a different browser or refresh page.';
-    } else if (err.message.includes('Blob') || err.message.includes('DataURL')) {
-      errorMsg = '⚠️ Image save failed. Your browser may not support downloads.';
+    } else if (err.message.includes('empty')) {
+      errorMsg = '⚠️ Canvas is empty. Try selecting a different template.';
     } else if (err.message) {
       errorMsg = `⚠️ ${err.message}`;
     }
@@ -765,33 +814,58 @@ async function downloadCard() {
 
 // Download blob helper
 function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  
   try {
+    console.log('💾 Creating blob download for:', filename);
+    const url = URL.createObjectURL(blob);
+    console.log('✓ Object URL created:', url.substring(0, 50) + '...');
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    link.setAttribute('data-test', 'download-link');
+    document.body.appendChild(link);
+    console.log('✓ Link element added to DOM');
+    
     link.click();
-  } finally {
+    console.log('✓ Click triggered on link');
+    
     document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    console.log('✓ Link removed from DOM');
+    
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      console.log('✓ Object URL revoked');
+    }, 500);
+    
+  } catch (err) {
+    console.error('❌ downloadBlob error:', err);
+    throw err;
   }
 }
 
 // Download dataURL helper (fallback)
 function downloadDataUrl(dataUrl, filename) {
-  const link = document.createElement('a');
-  link.href = dataUrl;
-  link.download = filename;
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  
   try {
+    console.log('🔗 Creating dataURL download for:', filename);
+    
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = filename;
+    link.style.display = 'none';
+    link.setAttribute('data-test', 'download-link-dataurl');
+    document.body.appendChild(link);
+    console.log('✓ DataURL link added to DOM, size:', dataUrl.length, 'chars');
+    
     link.click();
-  } finally {
+    console.log('✓ DataURL click triggered');
+    
     document.body.removeChild(link);
+    console.log('✓ DataURL link removed from DOM');
+    
+  } catch (err) {
+    console.error('❌ downloadDataUrl error:', err);
+    throw err;
   }
 }
 
