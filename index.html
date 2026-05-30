@@ -138,6 +138,10 @@
             <label for="toName" data-en="To (Receiver's Name)" data-si="ලබන්නාගේ නම">To (Receiver's Name)</label>
             <input type="text" id="toName" placeholder="Enter recipient's name..." oninput="updatePreview()" />
           </div>
+          <div class="input-group">
+            <label for="toAddress" data-en="Recipient Address" data-si="ලැබුනු වසුන්ගේ ලිපිනය">Recipient Address</label>
+            <textarea id="toAddress" placeholder="Enter recipient address for postcard..." rows="3" oninput="updatePreview()"></textarea>
+          </div>
         </div>
         <div class="nav-btns">
           <button class="back-btn" onclick="goToStep(3)" data-en="← Back" data-si="← ආපසු">← Back</button>
@@ -145,6 +149,10 @@
 
         <!-- Action Buttons -->
         <div class="action-buttons">
+          <label class="postcard-toggle-row">
+            <input type="checkbox" id="postcardToggle" onchange="togglePostcard(this.checked)" />
+            <span data-en="Postcard layout" data-si="තැපැල් කාඩ් පරිදි">Postcard layout</span>
+          </label>
           <button class="btn-download" id="btnDownload" onclick="downloadCard()">
             <span class="btn-icon">⬇</span>
             <span data-en="Download Card" data-si="කාඩ් බාගන්න">Download Card</span>
@@ -199,6 +207,14 @@
             <div class="card-names" id="cardNames">
               <div class="card-from" id="cardFrom">From: —</div>
               <div class="card-to" id="cardTo">To: —</div>
+            </div>
+
+            <!-- Address box (shown in postcard layout) -->
+            <div class="address-box" id="addressBox" aria-hidden="true">
+              <div class="stamp" id="stamp">✺</div>
+              <div class="address-lines" id="addressLines">
+                <!-- Populated by JS -->
+              </div>
             </div>
 
             <!-- Decorative bottom -->

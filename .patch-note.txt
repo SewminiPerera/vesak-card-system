@@ -1,0 +1,1 @@
+Patches applied: added recipient address textarea, postcard toggle, address preview box, JS toggle and state, and CSS for postcard layout.
