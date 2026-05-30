@@ -92,6 +92,7 @@ body.lang-si {
   z-index: 100;
   background: linear-gradient(135deg, rgba(26,10,46,0.98) 0%, rgba(45,16,80,0.98) 100%);
   border-bottom: 1px solid rgba(245, 200, 66, 0.3);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   box-shadow: 0 4px 30px rgba(0,0,0,0.4);
 }
@@ -201,7 +202,8 @@ body.lang-si {
   border: 1px solid rgba(245,200,66,0.2);
   border-radius: var(--radius-xl);
   padding: 28px 22px;
-  backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
   box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(245,200,66,0.1);
   position: sticky;
   top: 90px;
@@ -856,6 +858,7 @@ body.lang-si {
   align-items: center;
   justify-content: center;
   gap: 20px;
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 
