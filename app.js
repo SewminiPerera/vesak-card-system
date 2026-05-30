@@ -640,120 +640,123 @@ async function downloadCard() {
   const lang = state.cardLang;
   const t = translations[lang];
 
+  // Validate card is complete
+  const fromVal = document.getElementById('fromName')?.value || '';
+  const toVal = document.getElementById('toName')?.value || '';
+
+  if (!fromVal || !toVal) {
+    showToast('⚠️ Please fill in both names first (Step 4).');
+    return;
+  }
+
   showLoading(t.creating);
 
   try {
+    // Check if html2canvas is available
+    if (typeof html2canvas === 'undefined') {
+      hideLoading();
+      showToast('⚠️ Download library loading. Try again in a moment.');
+      console.error('html2canvas not available');
+      return;
+    }
+
     const card = document.getElementById('vesakCard');
     if (!card) {
       hideLoading();
-      showToast('⚠️ Card element not found. Please complete all steps.');
+      showToast('⚠️ Card not found. Complete all steps first.');
+      console.error('Card element not found');
       return;
     }
 
-    // Wait for all images in the card to load
-    await preloadCardImages(card);
+    // Force visible state
+    const originalDisplay = card.style.display;
+    card.style.display = 'block';
 
-    // Create a temporary container with fixed dimensions
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'fixed';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = '-9999px';
-    tempContainer.style.width = '900px';
-    tempContainer.style.height = '600px';
-    tempContainer.style.backgroundColor = '#1a0a2e';
-    tempContainer.style.zIndex = '-999';
-
-    // Clone the card
-    const cardClone = card.cloneNode(true);
-    cardClone.style.width = '900px';
-    cardClone.style.height = '600px';
-    cardClone.style.maxWidth = 'none';
-    cardClone.style.margin = '0';
-    cardClone.style.padding = '0';
-
-    tempContainer.appendChild(cardClone);
-    document.body.appendChild(tempContainer);
-
-    // Render canvas
-    const canvas = await html2canvas(cardClone, {
-      scale: 2,
-      useCORS: true,
+    // Render with html2canvas - simpler config
+    const canvas = await html2canvas(card, {
       allowTaint: true,
+      useCORS: true,
+      scale: 2,
+      logging: false,
       backgroundColor: '#1a0a2e',
-      logging: true,
-      timeout: 15000,
-      imageTimeout: 8000,
-      windowWidth: 900,
-      windowHeight: 600
+      proxy: null,
+      foreignObjectRendering: false
     });
 
-    // Remove temporary container
-    document.body.removeChild(tempContainer);
+    card.style.display = originalDisplay;
 
     if (!canvas) {
       hideLoading();
-      showToast('⚠️ Failed to generate card image.');
+      showToast('⚠️ Canvas generation failed. Try refreshing.');
+      console.error('Canvas is null');
       return;
     }
 
-    // Download as PNG
-    canvas.toBlob((blob) => {
-      if (!blob) {
+    // Try blob method first (more reliable)
+    try {
+      canvas.toBlob(
+        (blob) => {
+          if (blob && blob.size > 0) {
+            downloadBlob(blob, `Vesak-Card-${Date.now()}.png`);
+            hideLoading();
+            showToast(t.downloadSuccess);
+          } else {
+            throw new Error('Blob is empty or null');
+          }
+        },
+        'image/png',
+        0.95
+      );
+    } catch (blobErr) {
+      // Fallback to dataURL method
+      console.warn('Blob method failed, trying dataURL:', blobErr);
+      const dataUrl = canvas.toDataURL('image/png');
+      if (dataUrl && dataUrl.startsWith('data:')) {
+        downloadDataUrl(dataUrl, `Vesak-Card-${Date.now()}.png`);
         hideLoading();
-        showToast('⚠️ Failed to create image file.');
-        return;
+        showToast(t.downloadSuccess);
+      } else {
+        throw new Error('DataURL generation failed');
       }
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.download = `Vesak-Card-${Date.now()}.png`;
-      link.href = url;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Cleanup
-      setTimeout(() => URL.revokeObjectURL(url), 500);
-      hideLoading();
-      showToast(t.downloadSuccess);
-    }, 'image/png', 1.0);
+    }
 
   } catch (err) {
-    console.error('Download error details:', err);
+    console.error('Download error:', err);
     hideLoading();
-    showToast(`⚠️ Download failed. Check console for details.`);
+    showToast('⚠️ Download failed. Check browser console.');
   }
 }
 
-// Preload all images in the card
-function preloadCardImages(card) {
-  return new Promise((resolve) => {
-    const images = card.querySelectorAll('img');
-    if (images.length === 0) {
-      resolve();
-      return;
-    }
+// Download blob helper
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  
+  try {
+    link.click();
+  } finally {
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  }
+}
 
-    let loaded = 0;
-    let failed = 0;
-
-    images.forEach((img) => {
-      if (img.complete) {
-        loaded++;
-      } else {
-        img.onload = () => {
-          loaded++;
-          if (loaded + failed === images.length) resolve();
-        };
-        img.onerror = () => {
-          failed++;
-          if (loaded + failed === images.length) resolve();
-        };
-      }
-    });
-
-    if (loaded + failed === images.length) resolve();
-  });
+// Download dataURL helper (fallback)
+function downloadDataUrl(dataUrl, filename) {
+  const link = document.createElement('a');
+  link.href = dataUrl;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  
+  try {
+    link.click();
+  } finally {
+    document.body.removeChild(link);
+  }
 }
 
 /* ---------------------------------------------------------
