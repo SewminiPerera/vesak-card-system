@@ -574,10 +574,11 @@ function updatePreview() {
   // --- Photo side ---
   const photoSide = document.getElementById('cardPhotoSide');
   if (tmpl.type === 'image') {
-    photoSide.style.backgroundImage  = `url('${tmpl.img}')`;
-    photoSide.style.backgroundSize   = 'cover';
+    photoSide.style.background = 'none';
+    photoSide.style.backgroundImage = `url('${tmpl.img}')`;
+    photoSide.style.backgroundSize = 'cover';
     photoSide.style.backgroundPosition = 'center';
-    photoSide.style.background = null;
+    photoSide.style.backgroundRepeat = 'no-repeat';
   } else {
     photoSide.style.backgroundImage = 'none';
     photoSide.style.background = tmpl.gradient;
