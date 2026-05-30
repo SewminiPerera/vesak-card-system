@@ -644,34 +644,61 @@ async function downloadCard() {
 
   try {
     const card = document.getElementById('vesakCard');
+    if (!card) {
+      hideLoading();
+      showToast('⚠️ Card element not found.');
+      return;
+    }
 
-    // Scale the card for high-res output (1350x900)
-    const scale = window.devicePixelRatio || 2;
+    // Clone the card to avoid modifying the original
+    const cardClone = card.cloneNode(true);
+    cardClone.style.width = '900px';
+    cardClone.style.height = '600px';
 
-    const canvas = await html2canvas(card, {
+    const canvas = await html2canvas(cardClone, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
-      backgroundColor: null,
+      backgroundColor: '#1a0a2e',
       logging: false,
-      width: card.offsetWidth,
-      height: card.offsetHeight
+      timeout: 10000,
+      imageTimeout: 5000,
+      ignoreElements: (el) => {
+        // Ignore loading overlays and toasts
+        return el.classList && (el.classList.contains('loading-overlay') || el.classList.contains('toast'));
+      }
     });
 
-    // Download
-    const link = document.createElement('a');
-    link.download = `Vesak-Card-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png', 1.0);
-    link.click();
+    if (!canvas) {
+      hideLoading();
+      showToast('⚠️ Failed to generate canvas. Try again.');
+      return;
+    }
 
-    hideLoading();
-    showToast(t.downloadSuccess);
+    // Convert to blob and download
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        hideLoading();
+        showToast('⚠️ Failed to convert canvas to image.');
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `Vesak-Card-${Date.now()}.png`;
+      link.href = url;
+      link.click();
+
+      // Clean up
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      hideLoading();
+      showToast(t.downloadSuccess);
+    }, 'image/png', 1.0);
 
   } catch (err) {
     console.error('Download error:', err);
     hideLoading();
-    // Fallback: show error toast
-    showToast('⚠️ Please try again in a moment.');
+    showToast(`⚠️ Download failed: ${err.message || 'Unknown error'}`);
   }
 }
 
@@ -683,10 +710,18 @@ function createNew() {
   state.selectedPoem     = 0;
   state.fromName         = '';
   state.toName           = '';
+  state.toAddress        = '';
+  state.postcardMode     = false;
   state.cardLang         = 'en';
 
   document.getElementById('fromName').value = '';
   document.getElementById('toName').value   = '';
+  document.getElementById('toAddress').value = '';
+  const pcToggle = document.getElementById('postcardToggle');
+  if (pcToggle) {
+    pcToggle.checked = false;
+    togglePostcard(false);
+  }
 
   selectCardLanguage('en');
   renderTemplateGrid();
