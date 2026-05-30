@@ -15,7 +15,8 @@ const state = {
   selectedTemplate: 0,   // Index 0-9
   selectedPoem: 0,       // Index 0-9
   fromName: '',
-  toName: ''
+  toName: '',
+  postcardMode: false
 };
 
 /* ---------------------------------------------------------
@@ -367,6 +368,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initParticles();
   renderTemplateGrid();
   renderPoemList();
+  // Initialize postcard toggle state
+  const pcToggle = document.getElementById('postcardToggle');
+  if (pcToggle) pcToggle.checked = state.postcardMode;
   updatePreview();
   goToStep(1);
 });
@@ -434,6 +438,19 @@ function selectCardLanguage(lang) {
 
   // Re-render poem list in selected language
   renderPoemList();
+  updatePreview();
+}
+
+/* ---------------------------------------------------------
+   POSTCARD TOGGLE
+--------------------------------------------------------- */
+function togglePostcard(checked) {
+  state.postcardMode = !!checked;
+  const card = document.getElementById('vesakCard');
+  if (card) card.classList.toggle('postcard', state.postcardMode);
+  // Mark address box aria state
+  const addr = document.getElementById('addressBox');
+  if (addr) addr.setAttribute('aria-hidden', state.postcardMode ? 'false' : 'true');
   updatePreview();
 }
 
@@ -550,6 +567,10 @@ function updatePreview() {
   state.fromName = document.getElementById('fromName')?.value || '';
   state.toName   = document.getElementById('toName')?.value  || '';
 
+  // Address (postcard)
+  const addrVal = document.getElementById('toAddress')?.value || '';
+  state.toAddress = addrVal;
+
   // --- Photo side ---
   const photoSide = document.getElementById('cardPhotoSide');
   if (tmpl.type === 'image') {
@@ -586,6 +607,17 @@ function updatePreview() {
   document.getElementById('cardFrom').textContent = fromText;
   document.getElementById('cardTo').textContent   = toText;
 
+  // Postcard: populate address box lines
+  const addressBox = document.getElementById('addressLines');
+  if (addressBox) {
+    if (state.postcardMode && state.toAddress) {
+      const lines = state.toAddress.split('\n').map(l => l.trim()).filter(Boolean);
+      addressBox.innerHTML = lines.map(l => `<div class="addr-line">${escapeHtml(l)}</div>`).join('');
+    } else {
+      addressBox.innerHTML = '';
+    }
+  }
+
   // Card lang font
   const contentSide = document.getElementById('cardContentSide');
   if (lang === 'si') {
@@ -593,6 +625,11 @@ function updatePreview() {
   } else {
     contentSide.style.fontFamily = "'Cormorant Garamond', serif";
   }
+}
+
+// Small helper to escape HTML when inserting address lines
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /* ---------------------------------------------------------
