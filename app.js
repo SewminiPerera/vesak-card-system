@@ -646,40 +646,61 @@ async function downloadCard() {
     const card = document.getElementById('vesakCard');
     if (!card) {
       hideLoading();
-      showToast('⚠️ Card element not found.');
+      showToast('⚠️ Card element not found. Please complete all steps.');
       return;
     }
 
-    // Clone the card to avoid modifying the original
+    // Wait for all images in the card to load
+    await preloadCardImages(card);
+
+    // Create a temporary container with fixed dimensions
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'fixed';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.width = '900px';
+    tempContainer.style.height = '600px';
+    tempContainer.style.backgroundColor = '#1a0a2e';
+    tempContainer.style.zIndex = '-999';
+
+    // Clone the card
     const cardClone = card.cloneNode(true);
     cardClone.style.width = '900px';
     cardClone.style.height = '600px';
+    cardClone.style.maxWidth = 'none';
+    cardClone.style.margin = '0';
+    cardClone.style.padding = '0';
 
+    tempContainer.appendChild(cardClone);
+    document.body.appendChild(tempContainer);
+
+    // Render canvas
     const canvas = await html2canvas(cardClone, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#1a0a2e',
-      logging: false,
-      timeout: 10000,
-      imageTimeout: 5000,
-      ignoreElements: (el) => {
-        // Ignore loading overlays and toasts
-        return el.classList && (el.classList.contains('loading-overlay') || el.classList.contains('toast'));
-      }
+      logging: true,
+      timeout: 15000,
+      imageTimeout: 8000,
+      windowWidth: 900,
+      windowHeight: 600
     });
+
+    // Remove temporary container
+    document.body.removeChild(tempContainer);
 
     if (!canvas) {
       hideLoading();
-      showToast('⚠️ Failed to generate canvas. Try again.');
+      showToast('⚠️ Failed to generate card image.');
       return;
     }
 
-    // Convert to blob and download
+    // Download as PNG
     canvas.toBlob((blob) => {
       if (!blob) {
         hideLoading();
-        showToast('⚠️ Failed to convert canvas to image.');
+        showToast('⚠️ Failed to create image file.');
         return;
       }
 
@@ -687,19 +708,52 @@ async function downloadCard() {
       const link = document.createElement('a');
       link.download = `Vesak-Card-${Date.now()}.png`;
       link.href = url;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
 
-      // Clean up
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      // Cleanup
+      setTimeout(() => URL.revokeObjectURL(url), 500);
       hideLoading();
       showToast(t.downloadSuccess);
     }, 'image/png', 1.0);
 
   } catch (err) {
-    console.error('Download error:', err);
+    console.error('Download error details:', err);
     hideLoading();
-    showToast(`⚠️ Download failed: ${err.message || 'Unknown error'}`);
+    showToast(`⚠️ Download failed. Check console for details.`);
   }
+}
+
+// Preload all images in the card
+function preloadCardImages(card) {
+  return new Promise((resolve) => {
+    const images = card.querySelectorAll('img');
+    if (images.length === 0) {
+      resolve();
+      return;
+    }
+
+    let loaded = 0;
+    let failed = 0;
+
+    images.forEach((img) => {
+      if (img.complete) {
+        loaded++;
+      } else {
+        img.onload = () => {
+          loaded++;
+          if (loaded + failed === images.length) resolve();
+        };
+        img.onerror = () => {
+          failed++;
+          if (loaded + failed === images.length) resolve();
+        };
+      }
+    });
+
+    if (loaded + failed === images.length) resolve();
+  });
 }
 
 /* ---------------------------------------------------------
