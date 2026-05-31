@@ -572,15 +572,28 @@ async function shareToWhatsApp() {
   const poem = poems[state.selectedPoem];
   const poemTitle = lang === 'en' ? poem.titleEn : poem.titleSi;
 
-  let msg = t.whatsappMsg + '\n\n';
-  if (toVal)   msg += `${t.cardTo} ${toVal}\n`;
-  if (fromVal) msg += `${t.cardFrom} ${fromVal}\n`;
-  msg += `\n✨ ${poemTitle}\n`;
-  msg += poem[lang].substring(0, 120) + '...\n\n';
-  msg += '🌸 සබ්බේ සත්තා සුඛිතා හොන්තු 🌸\nMay all beings be happy ☸️';
+  // Helper: safely truncate by Unicode code points
+  function safeTruncate(str, maxChars) {
+    return Array.from(str).slice(0, maxChars).join('');
+  }
+
+  // Prepare poem snippet and normalize text to NFC to avoid replacement chars
+  const rawPoem = (poem[lang] || '').replace(/\r\n?/g, '\n').trim();
+  const poemSnippet = safeTruncate(rawPoem.replace(/\n+/g, ' '), 240);
+
+  const parts = [];
+  parts.push((t.whatsappMsg || '').replace(/\u2014/g, '-'));
+  if (toVal) parts.push(`${t.cardTo} ${toVal}`);
+  if (fromVal) parts.push(`${t.cardFrom} ${fromVal}`);
+  if (poemTitle) parts.push(`${poemTitle}`);
+  if (poemSnippet) parts.push(poemSnippet + '...');
+  parts.push('🌸 සබ්බේ සත්තා සුඛිතා හොන්තු 🌸');
+  parts.push('May all beings be happy ☸️');
+
+  let msg = parts.join('\n\n').normalize('NFC');
 
   // Try Web Share API first (mobile — can share image file)
-  const canNativeShare = navigator.share && navigator.canShare;
+  const canNativeShare = navigator.share && (typeof navigator.canShare === 'function');
 
   if (canNativeShare) {
     // Try to share the card image file via native share sheet
@@ -622,29 +635,32 @@ async function shareToWhatsApp() {
     }
   }
 
-  // Fallback: WhatsApp URL scheme (opens WhatsApp with pre-filled message)
-  // First, try to download the card so user has it to attach manually
+  // Fallback: open WhatsApp Web with pre-filled, properly encoded text
+  // We cannot attach images via URL; we download the image first to help the user.
   showLoading('✨ Preparing card...');
   try {
     const canvas = await renderCardToCanvas();
     hideLoading();
 
-    // Download the image first
+    // Download the image first so user can attach it in WhatsApp
     canvas.toBlob(blob => {
       if (blob) {
         downloadBlob(blob, `Vesak-Card-${Date.now()}.png`);
         showToast('📥 Card saved! Opening WhatsApp...');
         setTimeout(() => {
-          const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-          window.open(waUrl, '_blank');
+          const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+          window.open(waUrl, '_blank', 'noopener');
         }, 800);
+      } else {
+        // If blob failed, just open WhatsApp with text
+        const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank', 'noopener');
       }
     }, 'image/png', 0.95);
   } catch (err) {
     hideLoading();
-    // Open WhatsApp anyway with text
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-    window.open(waUrl, '_blank');
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank', 'noopener');
     showToast('🌸 Opening WhatsApp...');
   }
 }
