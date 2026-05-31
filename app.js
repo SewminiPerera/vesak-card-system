@@ -387,17 +387,19 @@ function updatePreview() {
   // --- Photo side: uploaded photo takes priority ---
   const photoSide = document.getElementById('cardPhotoSide');
   if (state.uploadedPhotoDataUrl) {
+    photoSide.style.background = 'none';
     photoSide.style.backgroundImage  = `url('${state.uploadedPhotoDataUrl}')`;
     photoSide.style.backgroundSize   = 'cover';
     photoSide.style.backgroundPosition = 'center';
     photoSide.style.backgroundRepeat  = 'no-repeat';
-    photoSide.style.background = '';
+    photoSide.style.backgroundAttachment = 'fixed';
   } else if (tmpl.type === 'image') {
     photoSide.style.background = 'none';
     photoSide.style.backgroundImage  = `url('${tmpl.img}')`;
     photoSide.style.backgroundSize   = 'cover';
     photoSide.style.backgroundPosition = 'center';
     photoSide.style.backgroundRepeat  = 'no-repeat';
+    photoSide.style.backgroundAttachment = 'scroll';
   } else {
     photoSide.style.backgroundImage = 'none';
     photoSide.style.background = tmpl.gradient;
