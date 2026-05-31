@@ -214,8 +214,9 @@ body.lang-si {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 4px;
   margin-bottom: 28px;
+  flex-wrap: nowrap;
 }
 
 .step {

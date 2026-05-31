@@ -328,18 +328,11 @@ function renderTemplateGrid() {
 
 function selectTemplate(i) {
   state.selectedTemplate = i;
-  // Clear uploaded photo when a template is selected
-  if (state.uploadedPhotoDataUrl) {
-    state.uploadedPhotoDataUrl = null;
-    const row = document.getElementById('uploadPreviewRow');
-    const input = document.getElementById('photoUploadInput');
-    if (row) row.style.display = 'none';
-    if (input) input.value = '';
-    const zone = document.getElementById('uploadDropZone');
-    if (zone) zone.classList.remove('has-photo');
-  }
+  // Only select template if no photo is uploaded
   document.querySelectorAll('.template-thumb').forEach(t => t.classList.remove('selected'));
-  document.getElementById('tmpl-' + i).classList.add('selected');
+  if (!state.uploadedPhotoDataUrl) {
+    document.getElementById('tmpl-' + i).classList.add('selected');
+  }
   updatePreview();
 }
 
@@ -392,7 +385,7 @@ function updatePreview() {
     photoSide.style.backgroundSize   = 'cover';
     photoSide.style.backgroundPosition = 'center';
     photoSide.style.backgroundRepeat  = 'no-repeat';
-    photoSide.style.backgroundAttachment = 'fixed';
+    photoSide.style.backgroundAttachment = 'scroll';
   } else if (tmpl.type === 'image') {
     photoSide.style.background = 'none';
     photoSide.style.backgroundImage  = `url('${tmpl.img}')`;
