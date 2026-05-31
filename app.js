@@ -451,22 +451,43 @@ async function renderCardToCanvas() {
   const origDisplay = loadingOverlay?.style.display;
   if (loadingOverlay) loadingOverlay.style.display = 'none';
 
-  const origStyles = { overflow: card.style.overflow, position: card.style.position, visibility: card.style.visibility };
+  const origStyles = { 
+    overflow: card.style.overflow, 
+    position: card.style.position, 
+    visibility: card.style.visibility,
+    opacity: card.style.opacity
+  };
   card.style.overflow   = 'visible';
   card.style.position   = 'relative';
   card.style.visibility = 'visible';
+  card.style.opacity    = '1';
 
   let canvas;
   try {
     canvas = await html2canvas(card, {
-      allowTaint: true, useCORS: true, scale: 2, logging: false,
-      backgroundColor: '#1a0a2e', proxy: null, foreignObjectRendering: false,
-      timeout: 20000, windowHeight: 600, windowWidth: 900
+      allowTaint: true, 
+      useCORS: true, 
+      scale: 2, 
+      logging: false,
+      backgroundColor: '#1a0a2e', 
+      proxy: null, 
+      foreignObjectRendering: false,
+      timeout: 20000, 
+      windowHeight: 600, 
+      windowWidth: 900,
+      ignoreElements: (element) => {
+        if (element.id === 'loadingOverlay') return true;
+        if (element.classList?.contains('builder-panel')) return true;
+        if (element.classList?.contains('preview-actions')) return true;
+        if (element.classList?.contains('preview-hint')) return true;
+        return false;
+      }
     });
   } finally {
     card.style.overflow   = origStyles.overflow;
     card.style.position   = origStyles.position;
     card.style.visibility = origStyles.visibility;
+    card.style.opacity    = origStyles.opacity;
     if (loadingOverlay) loadingOverlay.style.display = origDisplay || 'flex';
   }
 
@@ -483,10 +504,11 @@ async function downloadCard() {
   const lang = state.cardLang;
   const t    = translations[lang];
 
-  const fromVal = document.getElementById('fromName')?.value || '';
-  const toVal   = document.getElementById('toName')?.value   || '';
+  const fromVal = document.getElementById('fromName')?.value?.trim() || '';
+  const toVal   = document.getElementById('toName')?.value?.trim()   || '';
   if (!fromVal || !toVal) {
-    showToast('⚠️ Please fill in both names first (Step 4).');
+    showToast('⚠️ Please fill in both names in Step 4 first!');
+    goToStep(4);
     return;
   }
 
@@ -526,7 +548,7 @@ async function downloadCard() {
         showToast(t.downloadSuccess);
       } catch {
         hideLoading();
-        showToast('⚠️ Download failed. Try a different browser.');
+        showToast('⚠️ Download failed. Try refreshing the page.');
       }
     }
 
