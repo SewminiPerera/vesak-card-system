@@ -691,17 +691,7 @@ body.lang-si {
 }
 
 .photo-label {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  z-index: 2;
-  font-family: 'Cinzel', serif;
-  font-size: 1rem;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
-  letter-spacing: 0.08em;
+  display: none;
 }
 
 /* Card Content Side (Right) */
@@ -791,6 +781,7 @@ body.lang-si {
   align-items: center;
   gap: 8px;
   width: 100%;
+  opacity: 0.6;
 }
 
 .deco-flower {
@@ -814,60 +805,48 @@ body.lang-si {
 /* Wish Title */
 .card-wish-title {
   font-family: 'Cinzel', serif;
-  font-size: clamp(0.9rem, 2.5vw, 1.4rem);
+  font-size: clamp(1rem, 3vw, 1.6rem);
   font-weight: 700;
   color: var(--gold-bright);
   text-align: center;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-shadow: 0 0 20px rgba(245,200,66,0.5);
-  line-height: 1.2;
+  line-height: 1.3;
+  margin-bottom: 8px;
 }
 
 .card-wish-si {
   font-family: 'Noto Sans Sinhala', sans-serif;
-  font-size: clamp(0.7rem, 2vw, 1rem);
-  color: rgba(245,200,66,0.7);
+  font-size: clamp(0.8rem, 2.2vw, 1.1rem);
+  color: rgba(245,200,66,0.8);
   text-align: center;
-  margin-top: 2px;
+  margin-bottom: 24px;
 }
 
 /* Poem */
 .card-poem-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(0.75rem, 2vw, 1rem);
-  font-style: italic;
-  color: rgba(245,200,66,0.8);
-  text-align: center;
-  font-weight: 600;
+  display: none;
 }
 
 .card-poem-text {
-  font-family: 'Cormorant Garamond', 'Noto Sans Sinhala', serif;
-  font-size: clamp(0.62rem, 1.5vw, 0.82rem);
-  color: rgba(253,246,227,0.9);
-  text-align: center;
-  line-height: 1.7;
-  white-space: pre-line;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  max-width: 100%;
-  overflow: hidden;
+  display: none;
 }
 
 /* Names */
 .card-names {
   text-align: center;
   width: 100%;
+  margin-top: auto;
 }
 
 .card-from,
 .card-to {
   font-family: 'Cormorant Garamond', 'Noto Sans Sinhala', serif;
-  font-size: clamp(0.65rem, 1.6vw, 0.85rem);
-  color: rgba(245,200,66,0.8);
+  font-size: clamp(0.7rem, 1.8vw, 0.95rem);
+  color: rgba(245,200,66,0.85);
   font-style: italic;
-  line-height: 1.6;
+  line-height: 1.8;
+  font-weight: 500;
 }
 
 /* ==========================================
