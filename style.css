@@ -1039,3 +1039,281 @@ body.lang-si {
   pointer-events: none;
   z-index: -1;
 }
+
+/* ==========================================
+   PHOTO UPLOAD SECTION (NEW)
+   ========================================== */
+
+.upload-section {
+  margin-bottom: 0;
+}
+
+.upload-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gold-mid);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.upload-drop-zone {
+  display: block;
+  border: 2px dashed rgba(245,200,66,0.35);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: var(--transition);
+  overflow: hidden;
+  position: relative;
+}
+
+.upload-drop-zone:hover,
+.upload-drop-zone.drag-over {
+  border-color: var(--gold-bright);
+  background: rgba(245,200,66,0.07);
+  box-shadow: 0 0 20px rgba(245,200,66,0.15);
+}
+
+.upload-drop-zone.has-photo {
+  border-color: rgba(245,200,66,0.6);
+  border-style: solid;
+}
+
+.upload-drop-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 12px;
+  text-align: center;
+}
+
+.upload-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.upload-text {
+  font-size: 0.82rem;
+  color: rgba(245,200,66,0.8);
+  font-weight: 500;
+}
+
+.upload-hint {
+  font-size: 0.7rem;
+  color: rgba(245,200,66,0.4);
+}
+
+/* Preview row after upload */
+.upload-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(245,200,66,0.06);
+  border: 1px solid rgba(245,200,66,0.25);
+  border-radius: var(--radius-md);
+}
+
+.upload-preview-row img {
+  width: 52px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(245,200,66,0.3);
+  flex-shrink: 0;
+}
+
+.upload-preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-preview-name {
+  font-size: 0.75rem;
+  color: var(--cream);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-remove-btn {
+  background: none;
+  border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 20px;
+  color: rgba(245,200,66,0.7);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  width: fit-content;
+}
+
+.upload-remove-btn:hover {
+  background: rgba(192,57,43,0.2);
+  border-color: #c0392b;
+  color: #e74c3c;
+}
+
+/* Divider between upload and template grid */
+.template-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 12px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(245,200,66,0.15);
+}
+
+.divider-text {
+  font-size: 0.7rem;
+  color: rgba(245,200,66,0.45);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ==========================================
+   WHATSAPP BUTTON (NEW)
+   ========================================== */
+
+.btn-whatsapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 16px;
+  background: linear-gradient(135deg, #128C7E 0%, #25D366 60%, #128C7E 100%);
+  background-size: 200% 100%;
+  border: none;
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.03em;
+  animation: shimmerGreen 3s ease-in-out infinite;
+}
+
+@keyframes shimmerGreen {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.btn-whatsapp:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(37,211,102,0.4);
+  filter: brightness(1.08);
+}
+
+.btn-whatsapp .btn-icon {
+  display: flex;
+  align-items: center;
+}
+
+/* ==========================================
+   PREVIEW ACTION BUTTONS (NEW)
+   ========================================== */
+
+.preview-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.preview-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(245,200,66,0.3);
+  border-radius: 50px;
+  color: rgba(245,200,66,0.8);
+  font-size: 0.78rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.04em;
+}
+
+.preview-action-btn:hover {
+  background: rgba(245,200,66,0.1);
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+  transform: translateY(-2px);
+}
+
+.whatsapp-preview-btn {
+  border-color: rgba(37,211,102,0.4);
+  color: rgba(37,211,102,0.9);
+}
+
+.whatsapp-preview-btn:hover {
+  background: rgba(37,211,102,0.1);
+  border-color: #25D366;
+  color: #25D366;
+}
+
+.whatsapp-preview-btn svg {
+  flex-shrink: 0;
+}
+
+/* Textarea shares same style as input */
+.input-group textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(245,200,66,0.25);
+  border-radius: var(--radius-md);
+  padding: 13px 16px;
+  color: var(--cream);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  outline: none;
+  resize: vertical;
+}
+
+.input-group textarea:focus {
+  border-color: var(--gold-bright);
+  background: rgba(245,200,66,0.05);
+  box-shadow: 0 0 18px rgba(245,200,66,0.15);
+}
+
+.input-group textarea::placeholder { color: rgba(245,200,66,0.3); }
+
+/* Postcard toggle row */
+.postcard-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: rgba(245,200,66,0.7);
+  cursor: pointer;
+  padding: 8px 4px;
+}
+
+.postcard-toggle-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--gold-bright);
+}

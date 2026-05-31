@@ -18,7 +18,6 @@
 
   <!-- html2canvas for card download -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Fallback html2canvas from jsDelivr -->
   <script>
     if (typeof html2canvas === 'undefined') {
       const script = document.createElement('script');
@@ -98,9 +97,36 @@
           <span class="step-num">02</span>
           <div>
             <h2 class="section-title" data-en="Choose Template" data-si="අච්චුව තෝරන්න">Choose Template</h2>
-            <p class="section-sub" data-en="Select a beautiful Vesak background" data-si="සුන්දර වෙසක් පසුබිමක් තෝරන්න">Select a beautiful Vesak background</p>
+            <p class="section-sub" data-en="Select a background or upload your own photo" data-si="පසුබිමක් තෝරන්න හෝ ඔබේ ඡායාරූපය උඩුගත කරන්න">Select a background or upload your own photo</p>
           </div>
         </div>
+
+        <!-- Upload Your Own Photo -->
+        <div class="upload-section">
+          <div class="upload-label" data-en="📷 Upload Your Own Photo" data-si="📷 ඔබේ ඡායාරූපය උඩුගත කරන්න">📷 Upload Your Own Photo</div>
+          <label class="upload-drop-zone" id="uploadDropZone" for="photoUploadInput">
+            <div class="upload-drop-inner" id="uploadDropInner">
+              <span class="upload-icon">🖼️</span>
+              <span class="upload-text" data-en="Tap to choose photo from your device" data-si="ඔබේ උපාංගයෙන් ඡායාරූපයක් තෝරන්න">Tap to choose photo from your device</span>
+              <span class="upload-hint" data-en="JPG, PNG, WEBP supported" data-si="JPG, PNG, WEBP සහය දැක්වේ">JPG, PNG, WEBP supported</span>
+            </div>
+            <input type="file" id="photoUploadInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)" />
+          </label>
+          <div class="upload-preview-row" id="uploadPreviewRow" style="display:none">
+            <img id="uploadPreviewImg" src="" alt="Uploaded photo preview" />
+            <div class="upload-preview-info">
+              <span class="upload-preview-name" id="uploadPreviewName">photo.jpg</span>
+              <button class="upload-remove-btn" onclick="removeUploadedPhoto()" data-en="✕ Remove" data-si="✕ ඉවත් කරන්න">✕ Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="template-divider">
+          <div class="divider-line"></div>
+          <span class="divider-text" data-en="OR pick a template" data-si="හෝ අච්චුවක් තෝරන්න">OR pick a template</span>
+          <div class="divider-line"></div>
+        </div>
+
         <div class="template-grid" id="templateGrid">
           <!-- Injected by JS -->
         </div>
@@ -163,7 +189,15 @@
           </label>
           <button class="btn-download" id="btnDownload" onclick="downloadCard()">
             <span class="btn-icon">⬇</span>
-            <span data-en="Download Card" data-si="කාඩ් බාගන්න">Download Card</span>
+            <span data-en="Download Card as PNG" data-si="PNG ලෙස බාගන්න">Download Card as PNG</span>
+          </button>
+          <button class="btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()">
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+              </svg>
+            </span>
+            <span data-en="Share on WhatsApp" data-si="WhatsApp හි බෙදාගන්න">Share on WhatsApp</span>
           </button>
           <button class="btn-new" onclick="createNew()">
             <span class="btn-icon">✦</span>
@@ -238,8 +272,19 @@
         </div>
       </div>
 
+      <!-- Action shortcut buttons under preview -->
+      <div class="preview-actions">
+        <button class="preview-action-btn" onclick="downloadCard()" title="Download PNG">
+          <span>⬇</span> <span data-en="Download PNG" data-si="PNG බාගන්න">Download PNG</span>
+        </button>
+        <button class="preview-action-btn whatsapp-preview-btn" onclick="shareToWhatsApp()" title="Share on WhatsApp">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+          <span data-en="WhatsApp" data-si="WhatsApp">WhatsApp</span>
+        </button>
+      </div>
+
       <!-- Download hint -->
-      <p class="preview-hint" id="previewHint" data-en="Fill all steps then download your card as PNG" data-si="සියලු පියවර සම්පූර්ණ කර PNG ලෙස බාගන්න">Fill all steps then download your card as PNG</p>
+      <p class="preview-hint" id="previewHint" data-en="Fill all steps then download your card as PNG or share on WhatsApp" data-si="සියලු පියවර සම්පූර්ණ කර PNG ලෙස බාගන්න හෝ WhatsApp හි බෙදාගන්න">Fill all steps then download your card as PNG or share on WhatsApp</p>
     </div>
 
   </main>
